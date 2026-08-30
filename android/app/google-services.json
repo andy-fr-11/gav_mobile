@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "776269290873",
+    "project_id": "gav-mobile-b2e2a",
+    "storage_bucket": "gav-mobile-b2e2a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:776269290873:android:12c64db793959f07fe23a8",
+        "android_client_info": {
+          "package_name": "com.example.gav_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmPTVyw37n0KlIYk0jQwYAworO9vWn3RM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:776269290873:android:d25a642ee9c07221fe23a8",
+        "android_client_info": {
+          "package_name": "com.gav.gav_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmPTVyw37n0KlIYk0jQwYAworO9vWn3RM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
