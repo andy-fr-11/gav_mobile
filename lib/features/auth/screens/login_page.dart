@@ -66,15 +66,55 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: const [
-        Icon(Icons.remove_red_eye, size: 72, color: AppColors.primary),
-        SizedBox(height: 16),
-        Text(
-          'GAV SMARTVISION',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+      children: [
+        SizedBox(
+          width: 120,
+          height: 120,
+          child: Image.asset('assets/images/logo_gav.png', fit: BoxFit.contain),
         ),
-        SizedBox(height: 8),
-        Text(
+        const SizedBox(height: 10),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'GAV ',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+            Text(
+              'SMART',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.secondary,
+              ),
+            ),
+            Text(
+              'VISION',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'GILLES-ANDRE VISION\nun autre regard',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            height: 1.4,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
           'Connectez-vous pour accéder à l\'application',
           style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
           textAlign: TextAlign.center,

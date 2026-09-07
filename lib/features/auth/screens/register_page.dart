@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../config/routes/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/register_form.dart';
 
@@ -14,7 +16,7 @@ class RegisterPage extends StatelessWidget {
         backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.goNamed(RouteNames.welcome),
           icon: const Icon(
             Icons.arrow_back,
             color: AppColors.primary,

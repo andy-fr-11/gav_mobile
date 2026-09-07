@@ -21,7 +21,7 @@ class AuthFirebaseService {
   Future<UserCredential> signInWithEmail(String email, String password) {
     return _firebaseAuth.signInWithEmailAndPassword(
       email: email.trim(),
-      password: password.trim(),
+      password: password,
     );
   }
 
@@ -41,10 +41,44 @@ class AuthFirebaseService {
   }
 
   Future<void> createUserDocument(AuthUserModel userModel) async {
-    final docRef = _firestore
+    final batch = _firestore.batch();
+    final data = userModel.toMap();
+    final userRef = _firestore
         .collection(FirebaseConstants.usersCollection)
         .doc(userModel.uid);
-    await docRef.set(userModel.toMap());
+    batch.set(userRef, data);
+
+    final role = userModel.role.trim().toLowerCase();
+    final collection = role == 'patient'
+        ? FirebaseConstants.patientsCollection
+        : FirebaseConstants.personnelCollection;
+    final profileRef = _firestore.collection(collection).doc(userModel.uid);
+    batch.set(profileRef, data);
+    await batch.commit();
+  }
+
+  Future<void> updateUserDocument(AuthUserModel userModel) async {
+    final batch = _firestore.batch();
+    final data = userModel.toMap();
+    final userRef = _firestore
+        .collection(FirebaseConstants.usersCollection)
+        .doc(userModel.uid);
+    batch.set(userRef, data, SetOptions(merge: true));
+
+    final role = userModel.role.trim().toLowerCase();
+    final targetCollection = role == 'patient'
+        ? FirebaseConstants.patientsCollection
+        : FirebaseConstants.personnelCollection;
+    final targetRef = _firestore
+        .collection(targetCollection)
+        .doc(userModel.uid);
+    batch.set(targetRef, data, SetOptions(merge: true));
+
+    final oldCollection = role == 'patient'
+        ? FirebaseConstants.personnelCollection
+        : FirebaseConstants.patientsCollection;
+    batch.delete(_firestore.collection(oldCollection).doc(userModel.uid));
+    await batch.commit();
   }
 
   Future<AuthUserModel> fetchUserProfile(String uid) async {

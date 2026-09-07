@@ -54,6 +54,26 @@ class AuthValidators {
     return null;
   }
 
+  static String? validateLoginPassword(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Ce champ est obligatoire.';
+    }
+    final password = value.trim();
+    if (password.length < 8) {
+      return 'Le mot de passe doit contenir au moins 8 caractères.';
+    }
+    if (!RegExp(r'[a-z]').hasMatch(password)) {
+      return 'Le mot de passe doit contenir une minuscule.';
+    }
+    if (!RegExp(r'[0-9]').hasMatch(password)) {
+      return 'Le mot de passe doit contenir un chiffre.';
+    }
+    if (!RegExp(r'[!@#\$%\^&*(),.?":{}|<>]').hasMatch(password)) {
+      return 'Le mot de passe doit contenir un caractère spécial.';
+    }
+    return null;
+  }
+
   static String? validateRequired(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Ce champ est obligatoire.';

@@ -90,10 +90,10 @@ class _GlowCircle extends StatelessWidget {
       height: diameter,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(opacity),
+        color: color.withValues(alpha: opacity),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(opacity),
+            color: color.withValues(alpha: opacity),
             blurRadius: 80,
             spreadRadius: 20,
           ),
@@ -121,8 +121,11 @@ class _FloatingBlob extends StatelessWidget {
       height: diameter,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(opacity),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        color: color.withValues(alpha: opacity),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
       ),
     );
   }

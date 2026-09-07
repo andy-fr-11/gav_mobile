@@ -450,11 +450,28 @@ class _RegisterFormState extends State<RegisterForm> {
                 ],
               ),
               const SizedBox(height: 20),
+              if (authProvider.status == AuthStatus.error &&
+                  authProvider.message.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    authProvider.message,
+                    style: TextStyle(color: Colors.red.shade800, fontSize: 13),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               SizedBox(
                 width: double.infinity,
                 height: 46,
                 child: ElevatedButton(
-                  onPressed: _register,
+                  onPressed: authProvider.status == AuthStatus.authenticating
+                      ? null
+                      : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     shape: RoundedRectangleBorder(
@@ -469,14 +486,23 @@ class _RegisterFormState extends State<RegisterForm> {
                       vertical: 0,
                     ),
                   ),
-                  child: const Text(
-                    'Créer mon compte',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: authProvider.status == AuthStatus.authenticating
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Créer mon compte',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 10),
@@ -567,6 +593,10 @@ class _RegisterFormState extends State<RegisterForm> {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         prefixIcon: Icon(prefixIcon, color: const Color(0xFFBDC3C7), size: 16),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.clear, color: Color(0xFFBDC3C7), size: 16),
+          onPressed: () => controller.clear(),
+        ),
       ),
     );
   }
@@ -617,13 +647,22 @@ class _RegisterFormState extends State<RegisterForm> {
           color: Color(0xFFBDC3C7),
           size: 16,
         ),
-        suffixIcon: IconButton(
-          icon: Icon(
-            obscureText ? Icons.visibility_off : Icons.visibility,
-            color: const Color(0xFFBDC3C7),
-            size: 18,
-          ),
-          onPressed: onToggle,
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.clear, color: Color(0xFFBDC3C7), size: 16),
+              onPressed: () => controller.clear(),
+            ),
+            IconButton(
+              icon: Icon(
+                obscureText ? Icons.visibility_off : Icons.visibility,
+                color: const Color(0xFFBDC3C7),
+                size: 18,
+              ),
+              onPressed: onToggle,
+            ),
+          ],
         ),
       ),
     );

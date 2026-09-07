@@ -1,3 +1,6 @@
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.LibraryExtension
+
 allprojects {
     repositories {
         google()
@@ -17,15 +20,19 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+
+    plugins.withId("com.android.application") {
+        extensions.configure<ApplicationExtension> {
+            ndkVersion = "27.0.12077973"
+        }
+    }
+    plugins.withId("com.android.library") {
+        extensions.configure<LibraryExtension> {
+            ndkVersion = "27.0.12077973"
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
-}
-plugins {
-    // ...
-
-    // Ajouter la dépendance pour le plugin Gradle des services Google
-    id ( "com.google.gms.google-services" ) version "4.5.0"
-
 }

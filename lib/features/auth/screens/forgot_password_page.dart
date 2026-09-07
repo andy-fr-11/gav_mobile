@@ -53,7 +53,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.goNamed(RouteNames.login),
                   icon: const Icon(
                     Icons.arrow_back,
                     color: AppColors.primary,
@@ -67,25 +67,52 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   child: Column(
                     children: [
                       Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          Icons.lock_reset,
-                          color: Colors.white,
-                          size: 35,
+                        width: 110,
+                        height: 110,
+                        child: Image.asset(
+                          'assets/images/logo_gav.png',
+                          fit: BoxFit.contain,
                         ),
                       ),
                       const SizedBox(height: 16),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'GAV ',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          Text(
+                            'SMART',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                          Text(
+                            'VISION',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       const Text(
-                        'GAV SMARTVISION',
+                        'GILLES-ANDRE VISION\nun autre regard',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          fontSize: 14,
+                          height: 1.4,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -169,6 +196,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => _emailController.clear(),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

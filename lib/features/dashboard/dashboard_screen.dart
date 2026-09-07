@@ -150,7 +150,7 @@ class _DashboardAction extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.10),
+          color: color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(

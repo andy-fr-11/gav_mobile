@@ -32,6 +32,10 @@ class AuthRepository {
     return _firebaseService.createUserDocument(userModel);
   }
 
+  Future<void> updateUserProfile(AuthUserModel userModel) {
+    return _firebaseService.updateUserDocument(userModel);
+  }
+
   Future<AuthUserModel> fetchUserProfile(String uid) {
     return _firebaseService.fetchUserProfile(uid);
   }

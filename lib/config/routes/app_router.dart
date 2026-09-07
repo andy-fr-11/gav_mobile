@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
+import '../../core/constants/roles.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/forgot_password_page.dart';
 import '../../features/auth/screens/login_page.dart';
@@ -15,7 +15,7 @@ import '../../features/dashboard/reception_dashboard.dart';
 import 'route_names.dart';
 
 class AppRouter {
-  static GoRouter get router => GoRouter(
+  static GoRouter router(AuthProvider authProvider) => GoRouter(
     initialLocation: '/splash',
     routes: [
       GoRoute(
@@ -69,26 +69,43 @@ class AppRouter {
         builder: (context, state) => const ReceptionDashboard(),
       ),
     ],
+    refreshListenable: authProvider,
     redirect: (context, state) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final path = state.uri.path;
       final isLoggingIn = path.startsWith('/auth');
       final isDashboard = path.startsWith('/dashboard');
+      final isRootDashboard = path == '/dashboard';
 
       if (!authProvider.isAuthenticated && isDashboard) {
         return state.namedLocation(RouteNames.login);
       }
 
       if (authProvider.isAuthenticated && isLoggingIn) {
-        final role = authProvider.userProfile?.role.toLowerCase() ?? 'patient';
+        final role = UserRoleHelper.normalize(authProvider.userProfile?.role);
         switch (role) {
-          case 'admin':
+          case UserRole.admin:
             return state.namedLocation(RouteNames.adminDashboard);
-          case 'receptionniste':
+          case UserRole.receptionist:
             return state.namedLocation(RouteNames.receptionDashboard);
-          case 'opticien':
+          case UserRole.optician:
             return state.namedLocation(RouteNames.opticianDashboard);
-          default:
+          case UserRole.doctor:
+          case UserRole.patient:
+            return state.namedLocation(RouteNames.patientDashboard);
+        }
+      }
+
+      if (authProvider.isAuthenticated && isRootDashboard) {
+        final role = UserRoleHelper.normalize(authProvider.userProfile?.role);
+        switch (role) {
+          case UserRole.admin:
+            return state.namedLocation(RouteNames.adminDashboard);
+          case UserRole.receptionist:
+            return state.namedLocation(RouteNames.receptionDashboard);
+          case UserRole.optician:
+            return state.namedLocation(RouteNames.opticianDashboard);
+          case UserRole.doctor:
+          case UserRole.patient:
             return state.namedLocation(RouteNames.patientDashboard);
         }
       }

@@ -42,8 +42,7 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _navigateToDashboard(String? role) {
-    if (role == null) return;
-    switch (role.toLowerCase()) {
+    switch ((role ?? 'patient').toLowerCase()) {
       case 'admin':
         context.goNamed(RouteNames.adminDashboard);
         break;
@@ -98,11 +97,15 @@ class _LoginFormState extends State<LoginForm> {
               TextFormField(
                 controller: _emailController,
                 decoration: _buildInputDecoration(
-                  label: 'Email ou téléphone',
+                  label: 'Adresse email',
                   icon: const Icon(Icons.email),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => _emailController.clear(),
+                  ),
                 ),
                 keyboardType: TextInputType.emailAddress,
-                validator: AuthValidators.validateEmailOrPhone,
+                validator: AuthValidators.validateEmail,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -110,22 +113,31 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: _buildInputDecoration(
                   label: 'Mot de passe',
                   icon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: AppColors.textSecondary,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => _passwordController.clear(),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: AppColors.textSecondary,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 obscureText: _obscurePassword,
-                validator: AuthValidators.validatePassword,
+                validator: AuthValidators.validateLoginPassword,
               ),
               const SizedBox(height: 16),
               Row(

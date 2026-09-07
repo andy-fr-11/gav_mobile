@@ -13,7 +13,40 @@ class AppointmentProvider extends ChangeNotifier {
   List<AppointmentModel> get appointments => List.unmodifiable(_appointments);
 
   Future<void> loadAppointments() async {
-    _appointments = await _repository.fetchAppointments();
+    try {
+      _appointments = await _repository.fetchAppointments();
+    } catch (e, st) {
+      debugPrint('Failed to load appointments: $e');
+      debugPrint('$st');
+      _appointments = [];
+    }
+    debugPrint('Loaded ${_appointments.length} appointments from repository');
+
     notifyListeners();
+  }
+
+  // exposed for debugging
+  void debugPrintCount() {
+    debugPrint(
+      'AppointmentProvider: ${_appointments.length} appointments loaded',
+    );
+  }
+
+  Future<void> createAppointment(DateTime date, {String? reason}) async {
+    await _repository.createAppointment(date: date, reason: reason);
+    await loadAppointments();
+  }
+
+  Future<void> updateAppointment(
+    String appointmentId,
+    DateTime date, {
+    String? reason,
+  }) async {
+    await _repository.updateAppointment(
+      appointmentId: appointmentId,
+      date: date,
+      reason: reason,
+    );
+    await loadAppointments();
   }
 }
