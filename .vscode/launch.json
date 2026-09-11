@@ -1,0 +1,61 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    
+    {
+      "name": "GAV Mobile - Chrome (Supabase)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=https://jrghxmefwlotrcyyimrd.supabase.co",
+        "--dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_0O1Z6BWgHrjsFbqCPDVdvA_z0-3OdU-"
+      ]
+    },
+    {
+      "name": "GAV Mobile - Edge (Supabase)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "edge",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=https://jrghxmefwlotrcyyimrd.supabase.co",
+        "--dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_0O1Z6BWgHrjsFbqCPDVdvA_z0-3OdU-"
+      ]
+    },
+    {
+      "name": "GAV Mobile - Android (Supabase)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "emulator-5554",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=https://jrghxmefwlotrcyyimrd.supabase.co",
+        "--dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_0O1Z6BWgHrjsFbqCPDVdvA_z0-3OdU-"
+      ]
+    },
+    {
+      "name": "GAV Mobile - Windows (Supabase)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "windows",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=https://jrghxmefwlotrcyyimrd.supabase.co",
+        "--dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_0O1Z6BWgHrjsFbqCPDVdvA_z0-3OdU-"
+      ]
+    },
+    {
+      "name": "GAV Mobile - Itel A632W (Supabase)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "099954534I000734",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=https://jrghxmefwlotrcyyimrd.supabase.co",
+        "--dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_0O1Z6BWgHrjsFbqCPDVdvA_z0-3OdU-"
+      ]
+    }
+  ]
+}

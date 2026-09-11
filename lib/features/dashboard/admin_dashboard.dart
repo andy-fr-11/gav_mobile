@@ -30,6 +30,7 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   late Future<_AdminDashboardData> _dashboardFuture;
+  bool _sidebarExpanded = false;
 
   @override
   void initState() {
@@ -147,25 +148,105 @@ class _AdminDashboardState extends State<AdminDashboard> {
       allowedRoles: const [UserRole.admin],
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F7FB),
-        appBar: AppBar(
-          title: const Text('Tableau administrateur'),
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          actions: [
-            IconButton(
-              tooltip: 'Actualiser',
-              onPressed: _refresh,
-              icon: const Icon(Icons.refresh_rounded),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(110),
+          child: SafeArea(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0B3DDB),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1E88E5).withValues(alpha: 0.22),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: IconButton(
+                      tooltip: 'Retour',
+                      onPressed: () {
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                      ),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Administrateur',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Panneau de contrôle',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.8),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: IconButton(
+                          tooltip: 'Actualiser',
+                          onPressed: _refresh,
+                          icon: const Icon(
+                            Icons.refresh_rounded,
+                            color: Colors.white,
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            IconButton(
-              tooltip: 'Se déconnecter',
-              onPressed: () async {
-                await context.read<AuthProvider>().logout();
-                if (context.mounted) context.goNamed(RouteNames.login);
-              },
-              icon: const Icon(Icons.logout),
-            ),
-          ],
+          ),
         ),
         body: FutureBuilder<_AdminDashboardData>(
           future: _dashboardFuture,
@@ -178,97 +259,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
             }
 
             final data = snapshot.data!;
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            return Stack(
               children: [
-                _AdminSidebar(
-                  onLogout: () async {
-                    await context.read<AuthProvider>().logout();
-                    if (context.mounted) context.goNamed(RouteNames.login);
-                  },
-                  onPersonnel: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const PersonnelManagementScreen(),
-                      ),
-                    );
-                  },
-                  onPatients: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const PatientManagementScreen(),
-                      ),
-                    );
-                  },
-                  onAppointments: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const AppointmentManagementScreen(),
-                      ),
-                    );
-                  },
-                  onClinical: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ClinicalManagementScreen(),
-                      ),
-                    );
-                  },
-                  onStore: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const StoreManagementScreen(),
-                      ),
-                    );
-                  },
-                  onOrders: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const OrderManagementScreen(),
-                      ),
-                    );
-                  },
-                  onPayments: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const PaymentManagementScreen(),
-                      ),
-                    );
-                  },
-                  onNotifications: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const NotificationManagementScreen(),
-                      ),
-                    );
-                  },
-                  onChatbot: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ChatbotManagementScreen(),
-                      ),
-                    );
-                  },
-                  onStatistics: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const StatisticsManagementScreen(),
-                      ),
-                    );
-                  },
-                  onSettings: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const SystemSettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                Expanded(
+                Positioned.fill(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(18, 16, 18, 32),
                     children: [
-                      _AdminHeader(profile: profile, onRefresh: _refresh),
+                      _AdminHeader(
+                        profile: profile,
+                        onRefresh: _refresh,
+                        onToggleMenu: () => setState(
+                          () => _sidebarExpanded = !_sidebarExpanded,
+                        ),
+                      ),
                       const SizedBox(height: 22),
                       _KpiGrid(data: data),
                       const SizedBox(height: 24),
@@ -297,6 +300,97 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           (activity) => _ActivityTile(activity),
                         ),
                     ],
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: _AdminSidebar(
+                    expanded: _sidebarExpanded,
+                    onToggleMenu: () =>
+                        setState(() => _sidebarExpanded = !_sidebarExpanded),
+                    onLogout: () async {
+                      await context.read<AuthProvider>().logout();
+                      if (context.mounted) context.goNamed(RouteNames.login);
+                    },
+                    onPersonnel: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PersonnelManagementScreen(),
+                        ),
+                      );
+                    },
+                    onPatients: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PatientManagementScreen(),
+                        ),
+                      );
+                    },
+                    onAppointments: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AppointmentManagementScreen(),
+                        ),
+                      );
+                    },
+                    onClinical: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ClinicalManagementScreen(),
+                        ),
+                      );
+                    },
+                    onStore: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const StoreManagementScreen(),
+                        ),
+                      );
+                    },
+                    onOrders: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const OrderManagementScreen(),
+                        ),
+                      );
+                    },
+                    onPayments: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PaymentManagementScreen(),
+                        ),
+                      );
+                    },
+                    onNotifications: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationManagementScreen(),
+                        ),
+                      );
+                    },
+                    onChatbot: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ChatbotManagementScreen(),
+                        ),
+                      );
+                    },
+                    onStatistics: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const StatisticsManagementScreen(),
+                        ),
+                      );
+                    },
+                    onSettings: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SystemSettingsScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -374,68 +468,88 @@ class _KpiGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final revenue = NumberFormatUtils.currency(data.revenue);
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.45,
-      children: [
-        _ReferenceMetric(
-          label: 'Patients',
-          value: '${data.patientCount}',
-          icon: Icons.people_alt_outlined,
-          color: AppColors.primary,
-        ),
-        _ReferenceMetric(
-          label: 'Rendez-vous',
-          value: '${data.todayAppointments.length}',
-          caption: 'Aujourd’hui',
-          icon: Icons.calendar_month_outlined,
-          color: AppColors.primary,
-        ),
-        _ReferenceMetric(
-          label: 'Consultations',
-          value: '${data.appointmentCount}',
-          icon: Icons.assignment_outlined,
-          color: AppColors.primary,
-        ),
-        _ReferenceMetric(
-          label: 'Commandes',
-          value: '${data.orderCount}',
-          caption: 'Total',
-          icon: Icons.shopping_bag_outlined,
-          color: AppColors.primary,
-        ),
-        _ReferenceMetric(
-          label: 'Commandes payées',
-          value: '${data.paidOrderCount}',
-          caption: 'Réglées',
-          icon: Icons.check_circle_outline,
-          color: AppColors.success,
-        ),
-        _ReferenceMetric(
-          label: 'Commandes non payées',
-          value: '${data.unpaidOrderCount}',
-          caption: 'À régler',
-          icon: Icons.pending_actions_outlined,
-          color: AppColors.secondary,
-        ),
-        _ReferenceMetric(
-          label: "Chiffre d'affaires",
-          value: revenue,
-          icon: Icons.trending_up_rounded,
-          color: AppColors.primary,
-        ),
-        _ReferenceMetric(
-          label: 'Équipements disponibles',
-          value: '${data.productCount}',
-          caption: 'Dans la boutique',
-          icon: Icons.inventory_2_outlined,
-          color: AppColors.primary,
-        ),
-      ],
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        int crossAxisCount;
+        double childAspectRatio;
+
+        if (width >= 1200) {
+          crossAxisCount = 4;
+          childAspectRatio = 1.45;
+        } else if (width >= 900) {
+          crossAxisCount = 3;
+          childAspectRatio = 1.35;
+        } else {
+          crossAxisCount = 2;
+          childAspectRatio = 1.2;
+        }
+
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: childAspectRatio,
+          children: [
+            _ReferenceMetric(
+              label: 'Patients',
+              value: '${data.patientCount}',
+              icon: Icons.people_alt_outlined,
+              color: AppColors.primary,
+            ),
+            _ReferenceMetric(
+              label: 'Rendez-vous',
+              value: '${data.todayAppointments.length}',
+              caption: 'Aujourd’hui',
+              icon: Icons.calendar_month_outlined,
+              color: AppColors.primary,
+            ),
+            _ReferenceMetric(
+              label: 'Consultations',
+              value: '${data.appointmentCount}',
+              icon: Icons.assignment_outlined,
+              color: AppColors.primary,
+            ),
+            _ReferenceMetric(
+              label: 'Commandes',
+              value: '${data.orderCount}',
+              caption: 'Total',
+              icon: Icons.shopping_bag_outlined,
+              color: AppColors.primary,
+            ),
+            _ReferenceMetric(
+              label: 'Commandes payées',
+              value: '${data.paidOrderCount}',
+              caption: 'Réglées',
+              icon: Icons.check_circle_outline,
+              color: AppColors.success,
+            ),
+            _ReferenceMetric(
+              label: 'Commandes non payées',
+              value: '${data.unpaidOrderCount}',
+              caption: 'À régler',
+              icon: Icons.pending_actions_outlined,
+              color: AppColors.secondary,
+            ),
+            _ReferenceMetric(
+              label: "Chiffre d'affaires",
+              value: revenue,
+              icon: Icons.trending_up_rounded,
+              color: AppColors.primary,
+            ),
+            _ReferenceMetric(
+              label: 'Équipements disponibles',
+              value: '${data.productCount}',
+              caption: 'Dans la boutique',
+              icon: Icons.inventory_2_outlined,
+              color: AppColors.primary,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -514,6 +628,8 @@ class _ReferenceMetric extends StatelessWidget {
 }
 
 class _AdminSidebar extends StatelessWidget {
+  final bool expanded;
+  final VoidCallback onToggleMenu;
   final VoidCallback onLogout;
   final VoidCallback onPersonnel;
   final VoidCallback onPatients;
@@ -528,6 +644,8 @@ class _AdminSidebar extends StatelessWidget {
   final VoidCallback onSettings;
 
   const _AdminSidebar({
+    required this.expanded,
+    required this.onToggleMenu,
     required this.onLogout,
     required this.onPersonnel,
     required this.onPatients,
@@ -543,72 +661,268 @@ class _AdminSidebar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: 58,
-    color: const Color(0xFF0B3DDB),
-    child: SafeArea(
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.menu_rounded, color: Colors.white),
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final expandedWidth = (availableWidth * 0.58).clamp(160.0, 270.0);
+        final marginLeft = expanded ? 12.0 : 0.0;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          width: expanded ? expandedWidth : 0.0,
+          margin: EdgeInsets.fromLTRB(marginLeft, 10, 0, 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0B3DDB),
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1E88E5).withValues(alpha: 0.22),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          _SidebarButton(
-            icon: Icons.home_rounded,
-            selected: true,
-            onTap: () {},
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: expanded ? 12 : 0,
+                    ),
+                    child: _SidebarButton(
+                      icon: Icons.menu_rounded,
+                      selected: true,
+                      onTap: onToggleMenu,
+                      label: expanded ? 'Menu' : null,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  if (expanded) ...[
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _SidebarEntry(
+                              icon: Icons.home_rounded,
+                              title: 'Accueil',
+                              description: 'Vue d’ensemble du tableau de bord',
+                              onTap: () {},
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.people_alt_outlined,
+                              title: 'Personnel',
+                              description: 'Gérer les agents et équipes',
+                              onTap: onPersonnel,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.person_search_outlined,
+                              title: 'Patients',
+                              description: 'Consulter et suivre les patients',
+                              onTap: onPatients,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.calendar_month_outlined,
+                              title: 'Rendez-vous',
+                              description:
+                                  'Planifier et suivre les consultations',
+                              onTap: onAppointments,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.assignment_outlined,
+                              title: 'Clinique',
+                              description:
+                                  'Suivi des dossiers et interventions',
+                              onTap: onClinical,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.shopping_bag_outlined,
+                              title: 'Commandes',
+                              description: 'Gérer les commandes et livraisons',
+                              onTap: onOrders,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.payments_outlined,
+                              title: 'Paiements',
+                              description: 'Suivre les paiements et règlements',
+                              onTap: onPayments,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.notifications_active_outlined,
+                              title: 'Notifications',
+                              description: 'Envoyer et consulter les messages',
+                              onTap: onNotifications,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.smart_toy_outlined,
+                              title: 'Chatbot',
+                              description: 'Gérer le chatbot et les réponses',
+                              onTap: onChatbot,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.shopping_cart_outlined,
+                              title: 'Boutique',
+                              description: 'Gestion des produits et stocks',
+                              onTap: onStore,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.bar_chart_rounded,
+                              title: 'Statistiques',
+                              description:
+                                  'Analyser le rendement et les indicateurs',
+                              onTap: onStatistics,
+                            ),
+                            const SizedBox(height: 8),
+                            Divider(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              indent: 12,
+                              endIndent: 12,
+                            ),
+                            const SizedBox(height: 8),
+                            _SidebarEntry(
+                              icon: Icons.settings_outlined,
+                              title: 'Paramètres',
+                              description:
+                                  'Configurer le système et l’application',
+                              onTap: onSettings,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.logout_rounded,
+                              title: 'Déconnexion',
+                              description: 'Quitter la session administrateur',
+                              onTap: onLogout,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
-          _SidebarButton(icon: Icons.people_alt_outlined, onTap: onPersonnel),
-          _SidebarButton(icon: Icons.person_search_outlined, onTap: onPatients),
-          _SidebarButton(
-            icon: Icons.calendar_month_outlined,
-            onTap: onAppointments,
-          ),
-          _SidebarButton(icon: Icons.assignment_outlined, onTap: onClinical),
-          _SidebarButton(icon: Icons.shopping_bag_outlined, onTap: onOrders),
-          _SidebarButton(icon: Icons.payments_outlined, onTap: onPayments),
-          _SidebarButton(
-            icon: Icons.notifications_active_outlined,
-            onTap: onNotifications,
-          ),
-          _SidebarButton(icon: Icons.smart_toy_outlined, onTap: onChatbot),
-          _SidebarButton(icon: Icons.shopping_cart_outlined, onTap: onStore),
-          _SidebarButton(icon: Icons.bar_chart_rounded, onTap: onStatistics),
-          const Spacer(),
-          _SidebarButton(icon: Icons.settings_outlined, onTap: onSettings),
-          _SidebarButton(icon: Icons.logout_rounded, onTap: onLogout),
-          const SizedBox(height: 10),
-        ],
-      ),
-    ),
-  );
+        );
+      },
+    );
+  }
 }
 
 class _SidebarButton extends StatelessWidget {
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
+  final String? label;
 
   const _SidebarButton({
     required this.icon,
     required this.onTap,
     this.selected = false,
+    this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 42,
+    decoration: BoxDecoration(
+      color: selected ? Colors.white.withAlpha(45) : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          mainAxisAlignment: label != null
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 22),
+            if (label != null) ...[
+              const SizedBox(width: 12),
+              Text(
+                label!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _SidebarEntry extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  const _SidebarEntry({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: IconButton(
-      onPressed: onTap,
-      style: IconButton.styleFrom(
-        backgroundColor: selected
-            ? Colors.white.withAlpha(45)
-            : Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      icon: Icon(icon, color: Colors.white, size: 22),
     ),
   );
 }
@@ -616,18 +930,52 @@ class _SidebarButton extends StatelessWidget {
 class _AdminHeader extends StatelessWidget {
   final dynamic profile;
   final VoidCallback onRefresh;
+  final VoidCallback onToggleMenu;
 
-  const _AdminHeader({required this.profile, required this.onRefresh});
+  const _AdminHeader({
+    required this.profile,
+    required this.onRefresh,
+    required this.onToggleMenu,
+  });
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          onTap: onToggleMenu,
+          borderRadius: BorderRadius.circular(12),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.menu_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 6),
+              Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(width: 12),
       Expanded(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Bonjour, ${profile?.prenom ?? 'Administrateur'} 👋',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,

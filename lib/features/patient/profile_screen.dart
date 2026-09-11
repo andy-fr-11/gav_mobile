@@ -23,10 +23,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _uploading = false;
   String? _imageUrl;
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _prenomCtrl;
-  late final TextEditingController _nomCtrl;
-  late final TextEditingController _telephoneCtrl;
-  late final TextEditingController _adresseCtrl;
+  final TextEditingController _prenomCtrl = TextEditingController();
+  final TextEditingController _nomCtrl = TextEditingController();
+  final TextEditingController _telephoneCtrl = TextEditingController();
+  final TextEditingController _adresseCtrl = TextEditingController();
   DateTime? _dateNaissance;
 
   Future<void> _pickAndUpload() async {
@@ -101,16 +101,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _syncProfileFields();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncProfileFields();
+  }
+
+  void _syncProfileFields() {
+    final profile = context.read<AuthProvider>().userProfile;
+    if (profile == null) return;
+
+    _prenomCtrl.text = profile.prenom;
+    _nomCtrl.text = profile.nom;
+    _telephoneCtrl.text = profile.telephone;
+    _adresseCtrl.text = profile.adresse;
+    _dateNaissance = profile.dateNaissance;
+    if (_imageUrl == null && profile.photo.isNotEmpty) {
+      _imageUrl = profile.photo;
+    }
+  }
+
+  @override
+  void dispose() {
+    _prenomCtrl.dispose();
+    _nomCtrl.dispose();
+    _telephoneCtrl.dispose();
+    _adresseCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final profile = context.watch<AuthProvider>().userProfile;
-    _prenomCtrl = TextEditingController(text: profile?.prenom ?? '');
-    _nomCtrl = TextEditingController(text: profile?.nom ?? '');
-    _telephoneCtrl = TextEditingController(text: profile?.telephone ?? '');
-    _adresseCtrl = TextEditingController(text: profile?.adresse ?? '');
-    _dateNaissance ??= profile?.dateNaissance;
     final displayName = '${profile?.prenom ?? ''} ${profile?.nom ?? ''}'.trim();
     final initialPhoto = profile?.photo ?? '';
+    final effectiveImage = _imageUrl ?? initialPhoto;
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F7FB),
       appBar: AppBar(
         title: GavLogoTitle(
           title: 'Profil',
@@ -119,79 +152,203 @@ class _ProfileScreenState extends State<ProfileScreen> {
           textSize: 18,
         ),
         backgroundColor: const Color(0xFF1976D2),
+        elevation: 0,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 8),
-              CircleAvatar(
-                radius: 52,
-                backgroundColor: const Color(0xFFF5F7FA),
-                backgroundImage: _imageUrl != null
-                    ? NetworkImage(_imageUrl!) as ImageProvider
-                    : (initialPhoto.isNotEmpty
-                          ? NetworkImage(initialPhoto)
-                          : null),
-                child: (_imageUrl == null && initialPhoto.isEmpty)
-                    ? const Icon(
-                        Icons.person,
-                        size: 48,
-                        color: Color(0xFF1A5276),
-                      )
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                displayName.isEmpty ? 'Patient' : displayName,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1976D2), Color(0xFF1F8AE0)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1E88E5).withOpacity(0.22),
+                      blurRadius: 22,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            shape: BoxShape.circle,
+                          ),
+                          child: CircleAvatar(
+                            radius: 58,
+                            backgroundColor: Colors.white,
+                            backgroundImage: effectiveImage.isNotEmpty
+                                ? NetworkImage(effectiveImage)
+                                : null,
+                            child: effectiveImage.isEmpty
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 54,
+                                    color: Color(0xFF1A5276),
+                                  )
+                                : null,
+                          ),
+                        ),
+                        if (_uploading)
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.12),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.all(8),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Color(0xFF1976D2),
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.12),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              color: Color(0xFF1976D2),
+                              size: 18,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      displayName.isEmpty ? 'Patient' : displayName,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      profile?.email ?? '',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                profile?.email ?? '',
-                style: const TextStyle(color: Colors.black54),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _uploading ? null : _pickAndUpload,
+                  icon: _uploading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.upload_file_rounded),
+                  label: Text(
+                    _uploading
+                        ? 'Téléchargement...'
+                        : 'Changer la photo de profil',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1976D2),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _uploading ? null : _pickAndUpload,
-                icon: _uploading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.upload_file),
-                label: Text(
-                  _uploading
-                      ? 'Téléchargement...'
-                      : 'Changer la photo de profil',
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1976D2),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Divider(),
-              const SizedBox(height: 12),
-              Expanded(
                 child: Form(
                   key: _formKey,
-                  child: ListView(
+                  child: Column(
                     children: [
                       TextFormField(
                         controller: _prenomCtrl,
+                        style: const TextStyle(fontSize: 16),
                         decoration: InputDecoration(
                           labelText: 'Prénom',
+                          filled: true,
+                          fillColor: const Color(0xFFF5F8FC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF1976D2),
+                              width: 1.5,
+                            ),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.person_outline_rounded,
+                            color: Color(0xFF1976D2),
+                          ),
                           suffixIcon: IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear_rounded),
                             onPressed: () => _prenomCtrl.clear(),
                           ),
                         ),
@@ -199,13 +356,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? 'Prénom requis'
                             : null,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       TextFormField(
                         controller: _nomCtrl,
+                        style: const TextStyle(fontSize: 16),
                         decoration: InputDecoration(
                           labelText: 'Nom',
+                          filled: true,
+                          fillColor: const Color(0xFFF5F8FC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF1976D2),
+                              width: 1.5,
+                            ),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.badge_outlined,
+                            color: Color(0xFF1976D2),
+                          ),
                           suffixIcon: IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear_rounded),
                             onPressed: () => _nomCtrl.clear(),
                           ),
                         ),
@@ -213,14 +392,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? 'Nom requis'
                             : null,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       TextFormField(
                         controller: _telephoneCtrl,
                         keyboardType: TextInputType.phone,
+                        style: const TextStyle(fontSize: 16),
                         decoration: InputDecoration(
                           labelText: 'Téléphone',
+                          filled: true,
+                          fillColor: const Color(0xFFF5F8FC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF1976D2),
+                              width: 1.5,
+                            ),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.phone_outlined,
+                            color: Color(0xFF1976D2),
+                          ),
                           suffixIcon: IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear_rounded),
                             onPressed: () => _telephoneCtrl.clear(),
                           ),
                         ),
@@ -228,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? 'Téléphone requis'
                             : null,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       GestureDetector(
                         onTap: () async {
                           final picked = await showDatePicker(
@@ -237,87 +438,149 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             firstDate: DateTime(1900),
                             lastDate: DateTime.now(),
                           );
-                          if (picked != null)
+                          if (picked != null) {
                             setState(() => _dateNaissance = picked);
+                          }
                         },
-                        child: TextFormField(
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: 'Date de naissance',
-                            hintText: _dateNaissance == null
-                                ? 'Sélectionner'
-                                : '${_dateNaissance!.day}/${_dateNaissance!.month}/${_dateNaissance!.year}',
-                            suffixIcon: _dateNaissance == null
-                                ? null
-                                : IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () =>
-                                        setState(() => _dateNaissance = null),
-                                  ),
+                        child: AbsorbPointer(
+                          child: TextFormField(
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              labelText: 'Date de naissance',
+                              filled: true,
+                              fillColor: const Color(0xFFF5F8FC),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF1976D2),
+                                  width: 1.5,
+                                ),
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.calendar_today_outlined,
+                                color: Color(0xFF1976D2),
+                              ),
+                              hintText: _dateNaissance == null
+                                  ? 'Sélectionner'
+                                  : '${_dateNaissance!.day}/${_dateNaissance!.month}/${_dateNaissance!.year}',
+                              suffixIcon: _dateNaissance == null
+                                  ? null
+                                  : IconButton(
+                                      icon: const Icon(Icons.clear_rounded),
+                                      onPressed: () =>
+                                          setState(() => _dateNaissance = null),
+                                    ),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       TextFormField(
                         controller: _adresseCtrl,
+                        style: const TextStyle(fontSize: 16),
+                        maxLines: 2,
                         decoration: InputDecoration(
                           labelText: 'Adresse',
+                          filled: true,
+                          fillColor: const Color(0xFFF5F8FC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF1976D2),
+                              width: 1.5,
+                            ),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.location_on_outlined,
+                            color: Color(0xFF1976D2),
+                          ),
                           suffixIcon: IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear_rounded),
                             onPressed: () => _adresseCtrl.clear(),
                           ),
                         ),
                       ),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () async {
-                          if (!_formKey.currentState!.validate()) return;
-                          final auth = context.read<AuthProvider>();
-                          final existing = auth.userProfile;
-                          if (existing == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Profil introuvable'),
-                              ),
-                            );
-                            return;
-                          }
-                          final updated = AuthUserModel(
-                            uid: existing.uid,
-                            nom: _nomCtrl.text.trim(),
-                            prenom: _prenomCtrl.text.trim(),
-                            sexe: existing.sexe,
-                            dateNaissance:
-                                _dateNaissance ?? existing.dateNaissance,
-                            telephone: _telephoneCtrl.text.trim(),
-                            email: existing.email,
-                            photo: _imageUrl ?? existing.photo,
-                            role: existing.role,
-                            statut: existing.statut,
-                            adresse: _adresseCtrl.text.trim(),
-                            createdAt: existing.createdAt,
-                          );
-                          try {
-                            await auth.updateUserProfile(updated);
-                            if (mounted)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (!_formKey.currentState!.validate()) return;
+                            final auth = context.read<AuthProvider>();
+                            final existing = auth.userProfile;
+                            if (existing == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Profil enregistré'),
+                                  content: Text('Profil introuvable'),
                                 ),
                               );
-                          } catch (e) {
-                            if (mounted)
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Erreur: $e')),
-                              );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1976D2),
+                              return;
+                            }
+                            final updated = AuthUserModel(
+                              uid: existing.uid,
+                              nom: _nomCtrl.text.trim(),
+                              prenom: _prenomCtrl.text.trim(),
+                              sexe: existing.sexe,
+                              dateNaissance:
+                                  _dateNaissance ?? existing.dateNaissance,
+                              telephone: _telephoneCtrl.text.trim(),
+                              email: existing.email,
+                              photo: _imageUrl ?? existing.photo,
+                              role: existing.role,
+                              statut: existing.statut,
+                              adresse: _adresseCtrl.text.trim(),
+                              createdAt: existing.createdAt,
+                            );
+                            try {
+                              await auth.updateUserProfile(updated);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Profil enregistré'),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Erreur: $e')),
+                                );
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1976D2),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 17),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text(
+                            'Enregistrer',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
-                        child: const Text('Enregistrer'),
                       ),
-                      const SizedBox(height: 12),
                     ],
                   ),
                 ),

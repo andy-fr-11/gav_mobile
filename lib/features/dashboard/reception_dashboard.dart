@@ -25,6 +25,7 @@ class ReceptionDashboard extends StatefulWidget {
 
 class _ReceptionDashboardState extends State<ReceptionDashboard> {
   late Future<_ReceptionData> _data;
+  bool _sidebarExpanded = false;
 
   @override
   void initState() {
@@ -116,54 +117,158 @@ class _ReceptionDashboardState extends State<ReceptionDashboard> {
       allowedRoles: const [UserRole.receptionist],
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F7FB),
-        body: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _ReceptionRail(
-              onPatients: () => _open(const PatientManagementScreen()),
-              onAppointments: () =>
-                  _open(const OpticianAppointmentManagementScreen()),
-              onReception: () => _open(const ReceptionScreen()),
-              onOrders: () => _open(const OrderManagementScreen()),
-              onNotifications: () =>
-                  _open(const NotificationManagementScreen()),
-              onChatbot: () => _open(const ChatbotScreen()),
-              onRefresh: _refresh,
-              onLogout: () async {
-                await context.read<AuthProvider>().logout();
-                if (context.mounted) context.goNamed(RouteNames.login);
-              },
-            ),
-            Expanded(
-              child: SafeArea(
-                top: true,
-                bottom: true,
-                child: FutureBuilder<_ReceptionData>(
-                  future: _data,
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final data = snapshot.data!;
-                    return ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
-                      children: [
-                        _ReceptionTopBar(profile: profile),
-                        const SizedBox(height: 12),
-                        _Welcome(profile: profile),
-                        const SizedBox(height: 16),
-                        _ReceptionActionGrid(onOpen: _open),
-                        const SizedBox(height: 22),
-                        _DaySchedule(data: data),
-                        const SizedBox(height: 16),
-                        _ReceptionStatusStrip(data: data, onOpen: _open),
-                      ],
-                    );
-                  },
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(110),
+          child: SafeArea(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.secondary,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.secondary.withValues(alpha: 0.22),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: IconButton(
+                      tooltip: 'Retour',
+                      onPressed: () {
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                      ),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Réceptionniste',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Accueil et suivi administratif',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.8),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: IconButton(
+                          tooltip: 'Actualiser',
+                          onPressed: _refresh,
+                          icon: const Icon(
+                            Icons.refresh_rounded,
+                            color: Colors.white,
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+        ),
+        body: FutureBuilder<_ReceptionData>(
+          future: _data,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final data = snapshot.data!;
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(18, 16, 18, 32),
+                    children: [
+                      _ReceptionHeader(
+                        profile: profile,
+                        onToggleMenu: () => setState(
+                          () => _sidebarExpanded = !_sidebarExpanded,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _ReceptionActionGrid(onOpen: _open),
+                      const SizedBox(height: 22),
+                      _DaySchedule(data: data),
+                      const SizedBox(height: 16),
+                      _ReceptionStatusStrip(data: data, onOpen: _open),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: _ReceptionSidebar(
+                    expanded: _sidebarExpanded,
+                    onToggleMenu: () =>
+                        setState(() => _sidebarExpanded = !_sidebarExpanded),
+                    onPatients: () => _open(const PatientManagementScreen()),
+                    onAppointments: () =>
+                        _open(const OpticianAppointmentManagementScreen()),
+                    onReception: () => _open(const ReceptionScreen()),
+                    onOrders: () => _open(const OrderManagementScreen()),
+                    onNotifications: () =>
+                        _open(const NotificationManagementScreen()),
+                    onChatbot: () => _open(const ChatbotScreen()),
+                    onRefresh: _refresh,
+                    onLogout: () async {
+                      await context.read<AuthProvider>().logout();
+                      if (context.mounted) context.goNamed(RouteNames.login);
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -201,7 +306,9 @@ class _ReceptionAppointment {
   });
 }
 
-class _ReceptionRail extends StatelessWidget {
+class _ReceptionSidebar extends StatelessWidget {
+  final bool expanded;
+  final VoidCallback onToggleMenu;
   final VoidCallback onPatients;
   final VoidCallback onAppointments;
   final VoidCallback onReception;
@@ -211,7 +318,9 @@ class _ReceptionRail extends StatelessWidget {
   final VoidCallback onRefresh;
   final VoidCallback onLogout;
 
-  const _ReceptionRail({
+  const _ReceptionSidebar({
+    required this.expanded,
+    required this.onToggleMenu,
     required this.onPatients,
     required this.onAppointments,
     required this.onReception,
@@ -224,88 +333,309 @@ class _ReceptionRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewPadding = MediaQuery.viewPaddingOf(context);
-    return SizedBox(
-      width: 58,
-      child: Column(
-        children: [
-          SizedBox(height: viewPadding.top),
-          Expanded(
-            child: Container(
-              color: AppColors.secondary,
-              padding: EdgeInsets.only(top: 8, bottom: viewPadding.bottom + 8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final expandedWidth = (availableWidth * 0.58).clamp(160.0, 270.0);
+        final marginLeft = expanded ? 12.0 : 0.0;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          width: expanded ? expandedWidth : 0.0,
+          margin: EdgeInsets.fromLTRB(marginLeft, 10, 0, 10),
+          decoration: BoxDecoration(
+            color: AppColors.secondary,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.secondary.withValues(alpha: 0.22),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
               child: Column(
                 children: [
-                  const SizedBox(height: 12),
-                  const Icon(Icons.menu_rounded, color: Colors.white, size: 25),
-                  const SizedBox(height: 22),
-                  const _RailIcon(Icons.home_rounded, selected: true),
-                  _RailIcon(Icons.people_alt_outlined, onTap: onPatients),
-                  _RailIcon(
-                    Icons.calendar_month_outlined,
-                    onTap: onAppointments,
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: expanded ? 12 : 0,
+                    ),
+                    child: _SidebarButton(
+                      icon: Icons.menu_rounded,
+                      selected: true,
+                      onTap: onToggleMenu,
+                      label: expanded ? 'Menu' : null,
+                    ),
                   ),
-                  _RailIcon(Icons.how_to_reg_outlined, onTap: onReception),
-                  _RailIcon(Icons.shopping_bag_outlined, onTap: onOrders),
-                  _RailIcon(
-                    Icons.notifications_none_outlined,
-                    onTap: onNotifications,
-                  ),
-                  _RailIcon(Icons.smart_toy_outlined, onTap: onChatbot),
-                  const Spacer(),
-                  _RailIcon(Icons.refresh_rounded, onTap: onRefresh),
-                  _RailIcon(Icons.logout_rounded, onTap: onLogout),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
+                  if (expanded)
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _SidebarEntry(
+                              icon: Icons.home_rounded,
+                              title: 'Accueil',
+                              description: 'Vue d’ensemble du tableau de bord',
+                              onTap: () {},
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.people_alt_outlined,
+                              title: 'Patients',
+                              description:
+                                  'Consulter et gérer les dossiers patients',
+                              onTap: onPatients,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.calendar_month_outlined,
+                              title: 'Rendez-vous',
+                              description:
+                                  'Planifier et suivre les consultations',
+                              onTap: onAppointments,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.how_to_reg_outlined,
+                              title: 'Accueil patient',
+                              description: 'Valider les arrivées et l’accueil',
+                              onTap: onReception,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.shopping_bag_outlined,
+                              title: 'Commandes',
+                              description:
+                                  'Suivre les commandes et les factures',
+                              onTap: onOrders,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.notifications_active_outlined,
+                              title: 'Notifications',
+                              description: 'Consulter les messages et alertes',
+                              onTap: onNotifications,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.smart_toy_outlined,
+                              title: 'Chatbot',
+                              description: 'Accéder au support conversationnel',
+                              onTap: onChatbot,
+                            ),
+                            const SizedBox(height: 8),
+                            Divider(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              indent: 12,
+                              endIndent: 12,
+                            ),
+                            const SizedBox(height: 8),
+                            _SidebarEntry(
+                              icon: Icons.refresh_rounded,
+                              title: 'Actualiser',
+                              description:
+                                  'Mettre à jour les informations du dashboard',
+                              onTap: onRefresh,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.logout_rounded,
+                              title: 'Déconnexion',
+                              description: 'Quitter la session réceptionniste',
+                              onTap: onLogout,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
-class _RailIcon extends StatelessWidget {
+class _SidebarButton extends StatelessWidget {
   final IconData icon;
   final bool selected;
-  final VoidCallback? onTap;
-  const _RailIcon(this.icon, {this.selected = false, this.onTap});
+  final VoidCallback onTap;
+  final String? label;
+
+  const _SidebarButton({
+    required this.icon,
+    required this.onTap,
+    this.selected = false,
+    this.label,
+  });
 
   @override
-  Widget build(BuildContext context) => IconButton(
-    onPressed: onTap,
-    tooltip: 'Navigation',
-    style: IconButton.styleFrom(
-      backgroundColor: selected ? Colors.white.withAlpha(38) : null,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  Widget build(BuildContext context) => Container(
+    height: 42,
+    decoration: BoxDecoration(
+      color: selected ? Colors.white.withAlpha(45) : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
     ),
-    icon: Icon(icon, color: Colors.white, size: 22),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          mainAxisAlignment: label != null
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 22),
+            if (label != null) ...[
+              const SizedBox(width: 12),
+              Text(
+                label!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ),
   );
 }
 
-class _ReceptionTopBar extends StatelessWidget {
+class _SidebarEntry extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  const _SidebarEntry({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _ReceptionHeader extends StatelessWidget {
   final dynamic profile;
-  const _ReceptionTopBar({required this.profile});
+  final VoidCallback onToggleMenu;
+
+  const _ReceptionHeader({required this.profile, required this.onToggleMenu});
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      Expanded(
-        child: Image.asset(
-          'assets/images/logo_gav.png',
-          height: 62,
-          alignment: Alignment.centerLeft,
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          onTap: onToggleMenu,
+          borderRadius: BorderRadius.circular(12),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.menu_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 6),
+              Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      IconButton(
-        onPressed: () {},
-        tooltip: 'Notifications',
-        icon: const Icon(
-          Icons.notifications_none_rounded,
-          color: AppColors.textPrimary,
-          size: 28,
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Bonjour, ${profile?.prenom ?? 'Réceptionniste'} 👋',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Voici un aperçu rapide de l’accueil et du suivi du jour.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ],
         ),
+      ),
+      Image.asset(
+        'assets/images/logo_gav.png',
+        width: 66,
+        height: 42,
+        fit: BoxFit.contain,
       ),
     ],
   );
@@ -593,46 +923,6 @@ class _ReceptionStatusStrip extends StatelessWidget {
         TextButton(
           onPressed: () => onOpen(const NotificationManagementScreen()),
           child: const Text('Gérer'),
-        ),
-      ],
-    ),
-  );
-}
-
-class _Welcome extends StatelessWidget {
-  final dynamic profile;
-  const _Welcome({required this.profile});
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [AppColors.primary, Color(0xFF1764C0)],
-      ),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x260A3D91),
-          blurRadius: 16,
-          offset: Offset(0, 8),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Bonjour ${profile?.prenom ?? ''} ${profile?.nom ?? ''}'.trim(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          'Pilotez l’accueil et le suivi administratif des patients.',
-          style: TextStyle(color: Colors.white70),
         ),
       ],
     ),

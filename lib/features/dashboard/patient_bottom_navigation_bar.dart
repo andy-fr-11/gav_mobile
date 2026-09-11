@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../config/routes/route_names.dart';
 import '../auth/providers/auth_provider.dart';
+import '../../core/theme/app_colors.dart';
 
 class PatientBottomNavigationBar extends StatelessWidget {
   const PatientBottomNavigationBar({
@@ -21,18 +22,31 @@ class PatientBottomNavigationBar extends StatelessWidget {
       (Icons.home_outlined, Icons.home, 'Accueil'),
       (Icons.calendar_today_outlined, Icons.calendar_today, 'Rendez-vous'),
       (Icons.shopping_bag_outlined, Icons.shopping_bag, 'Boutique'),
-      (Icons.chat_outlined, Icons.chat, 'Chatbot'),
+      (Icons.smart_toy_outlined, Icons.smart_toy, 'Assistant'),
       (Icons.person_outline, Icons.person, 'Profil'),
-      (Icons.logout, Icons.logout, 'Déconnexion'),
+      (Icons.logout_rounded, Icons.logout_rounded, 'Sortir'),
     ];
 
     return Material(
-      color: Colors.white,
-      elevation: 12,
+      color: Colors.transparent,
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 68,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          height: 76,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.border),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x160A3D91),
+                blurRadius: 20,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
           child: Row(
             children: [
               for (var index = 0; index < items.length; index++)
@@ -81,29 +95,39 @@ class _NavigationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? const Color(0xFF1A5276) : const Color(0xFF7F8C8D);
+    final color = selected ? AppColors.primary : const Color(0xFF7B8794);
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(selected ? activeIcon : icon, size: 21, color: color),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                maxLines: 1,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  color: color,
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFFE8F0FF) : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(selected ? activeIcon : icon, size: 21, color: color),
+              const SizedBox(height: 3),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: color,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

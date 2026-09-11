@@ -72,6 +72,9 @@ dependencies:
   # Internet
   connectivity_plus: ^7.0.0
 
+  # IA / OpenAI
+  dart_openai: ^8.0.0
+
   # HTTP
   dio: ^5.9.0
 

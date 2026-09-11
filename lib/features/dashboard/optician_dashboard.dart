@@ -29,6 +29,7 @@ class _OpticianDashboardState extends State<OpticianDashboard> {
   late Future<_OpticianData> _data;
   bool _refreshing = false;
   bool _loggingOut = false;
+  bool _sidebarExpanded = false;
 
   @override
   void initState() {
@@ -145,52 +146,10 @@ class _OpticianDashboardState extends State<OpticianDashboard> {
     return RoleGuard(
       allowedRoles: const [UserRole.optician],
       child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        backgroundColor: const Color(0xFFF4F7FB),
+        body: Stack(
           children: [
-            _OpticianSidebar(
-              onRefresh: _refreshing ? null : _refresh,
-              refreshing: _refreshing,
-              onPatients: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const OpticianPatientRecordsScreen(),
-                ),
-              ),
-              onAppointments: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const OpticianAppointmentManagementScreen(),
-                ),
-              ),
-              onConsultation: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ConsultationScreen()),
-              ),
-              onExamination: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const OpticianExaminationScreen(),
-                ),
-              ),
-              onPrescriptions: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const OpticianPrescriptionScreen(),
-                ),
-              ),
-              onEquipment: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const OpticianEquipmentScreen(),
-                ),
-              ),
-              onOrders: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const OrderManagementScreen(),
-                ),
-              ),
-              onChatbot: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const ChatbotScreen())),
-              onLogout: _loggingOut ? null : _logout,
-            ),
-            Expanded(
+            Positioned.fill(
               child: SafeArea(
                 top: true,
                 bottom: true,
@@ -207,10 +166,16 @@ class _OpticianDashboardState extends State<OpticianDashboard> {
                       );
                     }
                     final data = snapshot.data!;
+
                     return ListView(
-                      padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
+                      padding: const EdgeInsets.fromLTRB(18, 16, 18, 32),
                       children: [
-                        _WelcomeHeader(profile: profile),
+                        _WelcomeHeader(
+                          profile: profile,
+                          onToggleMenu: () => setState(
+                            () => _sidebarExpanded = !_sidebarExpanded,
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         _SummaryGrid(data: data),
                         const SizedBox(height: 22),
@@ -253,6 +218,55 @@ class _OpticianDashboardState extends State<OpticianDashboard> {
                     );
                   },
                 ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: _OpticianSidebar(
+                expanded: _sidebarExpanded,
+                onToggleMenu: () =>
+                    setState(() => _sidebarExpanded = !_sidebarExpanded),
+                onRefresh: _refreshing ? null : _refresh,
+                refreshing: _refreshing,
+                onPatients: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const OpticianPatientRecordsScreen(),
+                  ),
+                ),
+                onAppointments: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const OpticianAppointmentManagementScreen(),
+                  ),
+                ),
+                onConsultation: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ConsultationScreen()),
+                ),
+                onExamination: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const OpticianExaminationScreen(),
+                  ),
+                ),
+                onPrescriptions: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const OpticianPrescriptionScreen(),
+                  ),
+                ),
+                onEquipment: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const OpticianEquipmentScreen(),
+                  ),
+                ),
+                onOrders: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const OrderManagementScreen(),
+                  ),
+                ),
+                onChatbot: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ChatbotScreen()),
+                ),
+                onLogout: _loggingOut ? null : _logout,
               ),
             ),
           ],
@@ -300,6 +314,8 @@ class _OpticianData {
 }
 
 class _OpticianSidebar extends StatelessWidget {
+  final bool expanded;
+  final VoidCallback onToggleMenu;
   final VoidCallback? onRefresh;
   final bool refreshing;
   final VoidCallback onPatients;
@@ -313,6 +329,8 @@ class _OpticianSidebar extends StatelessWidget {
   final VoidCallback? onLogout;
 
   const _OpticianSidebar({
+    required this.expanded,
+    required this.onToggleMenu,
     required this.onRefresh,
     this.refreshing = false,
     required this.onPatients,
@@ -327,101 +345,297 @@ class _OpticianSidebar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    top: true,
-    bottom: true,
-    child: Container(
-      width: 58,
-      color: AppColors.primary,
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          const Icon(Icons.menu_rounded, color: Colors.white, size: 24),
-          const SizedBox(height: 22),
-          _SidebarIcon(icon: Icons.home_rounded, selected: true),
-          _SidebarIcon(icon: Icons.people_alt_outlined, onTap: onPatients),
-          _SidebarIcon(
-            icon: Icons.calendar_month_outlined,
-            onTap: onAppointments,
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final expandedWidth = (availableWidth * 0.58).clamp(160.0, 270.0);
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          width: expanded ? expandedWidth : 0.0,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1E88E5).withValues(alpha: 0.18),
+                blurRadius: 14,
+                offset: const Offset(2, 0),
+              ),
+            ],
           ),
-          _SidebarIcon(icon: Icons.assignment_outlined, onTap: onConsultation),
-          _SidebarIcon(icon: Icons.visibility_outlined, onTap: onExamination),
-          _SidebarIcon(
-            icon: Icons.description_outlined,
-            onTap: onPrescriptions,
+          child: SafeArea(
+            top: true,
+            bottom: true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: expanded ? 12 : 0,
+                    ),
+                    child: _SidebarIcon(
+                      icon: Icons.menu_rounded,
+                      selected: true,
+                      onTap: onToggleMenu,
+                      label: expanded ? 'Menu' : null,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  if (expanded) ...[
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _SidebarEntry(
+                              icon: Icons.home_rounded,
+                              title: 'Accueil',
+                              description: 'Vue d’ensemble du tableau de bord',
+                              onTap: () {},
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.people_alt_outlined,
+                              title: 'Patients',
+                              description: 'Consulter et suivre les dossiers',
+                              onTap: onPatients,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.calendar_month_outlined,
+                              title: 'Rendez-vous',
+                              description:
+                                  'Planifier et suivre les consultations',
+                              onTap: onAppointments,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.assignment_outlined,
+                              title: 'Consultations',
+                              description: 'Gérer les échanges et suivis',
+                              onTap: onConsultation,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.visibility_outlined,
+                              title: 'Examens',
+                              description: 'Suivre les examens de vue',
+                              onTap: onExamination,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.description_outlined,
+                              title: 'Ordonnances',
+                              description:
+                                  'Consulter et éditer les prescriptions',
+                              onTap: onPrescriptions,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.inventory_2_outlined,
+                              title: 'Équipements',
+                              description: 'Gérer les stocks et matériels',
+                              onTap: onEquipment,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.build_circle_outlined,
+                              title: 'Fabrications',
+                              description:
+                                  'Suivre les commandes et préparations',
+                              onTap: onOrders,
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.chat_bubble_outline,
+                              title: 'Chatbot',
+                              description:
+                                  'Accéder au support et à l’assistance',
+                              onTap: onChatbot,
+                            ),
+                            const SizedBox(height: 8),
+                            Divider(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              indent: 12,
+                              endIndent: 12,
+                            ),
+                            const SizedBox(height: 8),
+                            _SidebarEntry(
+                              icon: Icons.refresh_rounded,
+                              title: 'Actualiser',
+                              description: refreshing
+                                  ? 'Mise à jour en cours...'
+                                  : 'Rafraîchir les données du tableau',
+                              onTap: onRefresh ?? () {},
+                            ),
+                            _SidebarEntry(
+                              icon: Icons.logout_rounded,
+                              title: 'Déconnexion',
+                              description: 'Quitter la session opticien',
+                              onTap: onLogout ?? () {},
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
-          _SidebarIcon(icon: Icons.inventory_2_outlined, onTap: onEquipment),
-          _SidebarIcon(icon: Icons.build_circle_outlined, onTap: onOrders),
-          _SidebarIcon(icon: Icons.chat_bubble_outline, onTap: onChatbot),
-          const Spacer(),
-          _SidebarIcon(
-            icon: Icons.refresh_rounded,
-            onTap: onRefresh,
-            loading: refreshing,
-          ),
-          _SidebarIcon(icon: Icons.logout_rounded, onTap: onLogout),
-          const SizedBox(height: 10),
-        ],
-      ),
-    ),
-  );
+        );
+      },
+    );
+  }
 }
 
 class _SidebarIcon extends StatelessWidget {
   final IconData icon;
   final bool selected;
   final VoidCallback? onTap;
-  final bool loading;
+  final String? label;
 
   const _SidebarIcon({
     required this.icon,
     this.selected = false,
     this.onTap,
-    this.loading = false,
+    this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final iconWidget = Icon(icon, color: Colors.white, size: 22);
+
+    if (label == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: IconButton(
+          onPressed: onTap,
+          tooltip: 'Navigation',
+          style: IconButton.styleFrom(
+            backgroundColor: selected
+                ? Colors.white.withAlpha(45)
+                : Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          icon: iconWidget,
+        ),
+      );
+    }
+
+    return Container(
+      height: 42,
+      decoration: BoxDecoration(
+        color: selected ? Colors.white.withAlpha(45) : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              iconWidget,
+              const SizedBox(width: 12),
+              Text(
+                label!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SidebarEntry extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  const _SidebarEntry({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: IconButton(
-      onPressed: onTap,
-      tooltip: 'Navigation',
-      style: IconButton.styleFrom(
-        backgroundColor: selected
-            ? Colors.white.withAlpha(45)
-            : Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      icon: loading
-          ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
+    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
               ),
-            )
-          : Icon(icon, color: Colors.white, size: 22),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     ),
   );
 }
 
 class _WelcomeHeader extends StatelessWidget {
   final dynamic profile;
-  const _WelcomeHeader({required this.profile});
+  final VoidCallback onToggleMenu;
+
+  const _WelcomeHeader({required this.profile, required this.onToggleMenu});
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
+    padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(24),
       border: Border.all(color: const Color(0xFFE3EAF4)),
       boxShadow: const [
         BoxShadow(
-          color: Color(0x120A3D91),
-          blurRadius: 14,
-          offset: Offset(0, 4),
+          color: Color(0x140A3D91),
+          blurRadius: 18,
+          offset: Offset(0, 6),
         ),
       ],
     ),
@@ -430,6 +644,33 @@ class _WelcomeHeader extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: InkWell(
+                onTap: onToggleMenu,
+                borderRadius: BorderRadius.circular(12),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.menu_rounded, color: Colors.white, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      'Menu',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Container(
                 height: 62,
@@ -480,6 +721,8 @@ class _WelcomeHeader extends StatelessWidget {
               .trim(),
           textAlign: TextAlign.left,
           textDirection: TextDirection.ltr,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 19,
@@ -491,7 +734,7 @@ class _WelcomeHeader extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: Text(
             'Voici votre planning du jour.',
-            style: TextStyle(color: AppColors.textSecondary, height: 1.35),
+            style: TextStyle(color: Colors.black87, height: 1.35),
           ),
         ),
       ],
@@ -591,7 +834,7 @@ class _SummaryCard extends StatelessWidget {
           label,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+          style: const TextStyle(fontSize: 11, color: Colors.black87),
         ),
       ],
     ),
@@ -708,10 +951,7 @@ class _DashboardTile extends StatelessWidget {
                 subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.black87, fontSize: 12),
               ),
             ],
           ),
@@ -753,10 +993,7 @@ class _EmptyPanel extends StatelessWidget {
         const Icon(Icons.check_circle_outline, color: AppColors.success),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(color: AppColors.textSecondary),
-          ),
+          child: Text(text, style: const TextStyle(color: Colors.black87)),
         ),
       ],
     ),
